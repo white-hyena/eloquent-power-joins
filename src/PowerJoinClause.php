@@ -182,6 +182,21 @@ class PowerJoinClause extends JoinClause
         return $this;
     }
 
+    /**
+     * Override join type in callback
+     * Use inner, outer, left or right as an option
+     *
+     * @param string $type
+     *
+     * @return $this
+     */
+    public function joinType(string $type = 'inner'): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
     public function __call($name, $arguments)
     {
         $scope = 'scope' . ucfirst($name);

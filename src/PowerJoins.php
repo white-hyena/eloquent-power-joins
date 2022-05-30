@@ -137,7 +137,6 @@ trait PowerJoins
             }
 
             $alias = $this->getAliasName($useAlias, $relation, $relationName, $callback);
-//            $alias = $useAlias ? $this->generateAliasForRelationship($relation, $relationName) : null;
             $aliasString = is_array($alias) ? implode('.', $alias) : $alias;
 
             if ($alias) {
@@ -184,12 +183,11 @@ trait PowerJoins
         if (is_array($sort)) {
             $relationships = explode('.', $sort[0]);
             $column = $sort[1];
-            $latestRelationshipName = $relationships[count($relationships) - 1];
         } else {
             $relationships = explode('.', $sort);
             $column = array_pop($relationships);
-            $latestRelationshipName = $relationships[count($relationships) - 1];
         }
+        $latestRelationshipName = $relationships[count($relationships) - 1];
 
         $query->joinRelationship(implode('.', $relationships), null, $joinType);
 

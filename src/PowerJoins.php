@@ -121,6 +121,7 @@ trait PowerJoins
      */
     public function scopeJoinNestedRelationship(Builder $query, string $relationships, $callback = null, $joinType = 'join', $useAlias = false, bool $disableExtraConditions = false): void
     {
+        $joinType = static::$joinMethodsMap[$joinType] ?? $joinType;
         $relations = explode('.', $relationships);
 
         /** @var \Illuminate\Database\Eloquent\Relations\Relation */

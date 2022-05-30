@@ -47,7 +47,7 @@ class RelationshipsExtraMethods
             $joinedTable = $this->query->getModel()->getTable();
             $parentTable = $this->getTableOrAliasForModel($this->parent, $this->parent->getTable());
 
-            $query->{$joinType}($joinedTable, function ($join) use ($callback, $joinedTable, $parentTable, $alias, $disableExtraConditions) {
+            $query->{$joinType}($joinedTable, function (PowerJoinClause $join) use ($callback, $joinedTable, $parentTable, $alias, $disableExtraConditions) {
                 if ($alias) {
                     $join->as($alias);
                 }
@@ -84,7 +84,7 @@ class RelationshipsExtraMethods
             $joinedTable = $alias1 ?: $this->getTable();
             $parentTable = $this->getTableOrAliasForModel($this->parent) ?? $this->parent->getTable();
 
-            $builder->{$joinType}($this->getTable(), function ($join) use ($callback, $joinedTable, $parentTable, $alias1) {
+            $builder->{$joinType}($this->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $parentTable, $alias1) {
                 if ($alias1) {
                     $join->as($alias1);
                 }
@@ -100,7 +100,7 @@ class RelationshipsExtraMethods
                 }
             });
 
-            $builder->{$joinType}($this->getModel()->getTable(), function ($join) use ($callback, $joinedTable, $alias2, $disableExtraConditions) {
+            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $alias2, $disableExtraConditions) {
                 if ($alias2) {
                     $join->as($alias2);
                 }
@@ -135,7 +135,7 @@ class RelationshipsExtraMethods
     protected function performJoinForEloquentPowerJoinsForMorph()
     {
         return function ($builder, $joinType, $callback = null, $alias = null, bool $disableExtraConditions = false) {
-            $builder->{$joinType}($this->getModel()->getTable(), function ($join) use ($callback, $disableExtraConditions) {
+            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $disableExtraConditions) {
                 $join->on(
                     "{$this->getModel()->getTable()}.{$this->getForeignKeyName()}",
                     '=',
@@ -168,7 +168,7 @@ class RelationshipsExtraMethods
             $joinedTable = $alias ?: $this->query->getModel()->getTable();
             $parentTable = $this->getTableOrAliasForModel($this->parent, $this->parent->getTable());
 
-            $builder->{$joinType}($this->query->getModel()->getTable(), function ($join) use ($callback, $joinedTable, $parentTable, $alias, $disableExtraConditions) {
+            $builder->{$joinType}($this->query->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $parentTable, $alias, $disableExtraConditions) {
                 if ($alias) {
                     $join->as($alias);
                 }

@@ -136,7 +136,7 @@ trait PowerJoins
             }
 
             $alias = $this->getAliasName($useAlias, $relation, $relationName, $relation->getQuery()->getModel()->getTable(), $callback);
-            $alias = $useAlias ? $this->generateAliasForRelationship($relation, $relationName) : null;
+//            $alias = $useAlias ? $this->generateAliasForRelationship($relation, $relationName) : null;
             $aliasString = is_array($alias) ? implode('.', $alias) : $alias;
 
             if ($alias) {

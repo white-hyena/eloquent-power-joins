@@ -49,7 +49,7 @@ trait PowerJoins
 
         $relation = $query->getModel()->{$relationName}();
         $relationQuery = $relation->getQuery();
-        $alias = $this->getAliasName($useAlias, $relation, $relationName, $relationQuery->getModel()->getTable(), $callback);
+        $alias = $this->getAliasName($useAlias, $relation, $relationName, $callback);
         $aliasString = is_array($alias) ? implode('.', $alias) : $alias;
 
         $relationJoinCache = $alias
@@ -135,7 +135,7 @@ trait PowerJoins
                 $relationCallback = $callback[$relationName];
             }
 
-            $alias = $this->getAliasName($useAlias, $relation, $relationName, $relation->getQuery()->getModel()->getTable(), $callback);
+            $alias = $this->getAliasName($useAlias, $relation, $relationName, $callback);
 //            $alias = $useAlias ? $this->generateAliasForRelationship($relation, $relationName) : null;
             $aliasString = is_array($alias) ? implode('.', $alias) : $alias;
 
@@ -420,7 +420,7 @@ trait PowerJoins
      *
      * @return string|null
      */
-    protected function getAliasName($useAlias, $relation, $relationName, $tableName, $callback)
+    protected function getAliasName($useAlias, $relation, $relationName, $callback)
     {
         if ($callback) {
             if (is_callable($callback)) {
@@ -432,9 +432,9 @@ trait PowerJoins
                 }
             }
 
-            if (is_array($callback) && isset($callback[$tableName])) {
+            if (is_array($callback) && isset($callback[$relationName])) {
                 $fakeJoinCallback = new FakeJoinCallback();
-                $callback[$tableName]($fakeJoinCallback);
+                $callback[$relationName]($fakeJoinCallback);
 
                 if ($fakeJoinCallback->getAlias()) {
                     return $fakeJoinCallback->getAlias();

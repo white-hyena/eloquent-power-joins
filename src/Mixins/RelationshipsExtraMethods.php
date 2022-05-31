@@ -79,14 +79,12 @@ class RelationshipsExtraMethods
     protected function performJoinForEloquentPowerJoinsForBelongsToMany()
     {
         return function ($builder, $joinType, $callback = null, $alias = null, bool $disableExtraConditions = false) {
-            [$alias1, $alias2] = $alias;
-
-            $joinedTable = $alias1 ?: $this->getTable();
             $parentTable = $this->getTableOrAliasForModel($this->parent) ?? $this->parent->getTable();
+            $joinedTable = $alias ? $parentTable . '_to_' . $alias : $this->getTable();
 
-            $builder->{$joinType}($this->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $parentTable, $alias1) {
-                if ($alias1) {
-                    $join->as($alias1);
+            $builder->{$joinType}($this->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $parentTable, $alias) {
+                if ($alias) {
+                    $join->as($parentTable . '_to_' . $alias);
                 }
 
                 $join->on(
@@ -100,9 +98,9 @@ class RelationshipsExtraMethods
                 }
             });
 
-            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $alias2, $disableExtraConditions) {
-                if ($alias2) {
-                    $join->as($alias2);
+            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $alias, $disableExtraConditions) {
+                if ($alias) {
+                    $join->as($alias);
                 }
 
                 $join->on(
@@ -202,13 +200,13 @@ class RelationshipsExtraMethods
     protected function performJoinForEloquentPowerJoinsForHasManyThrough()
     {
         return function ($builder, $joinType, $callback = null, $alias = null, bool $disableExtraConditions = false) {
-            [$alias1, $alias2] = $alias;
-            $throughTable = $alias1 ?: $this->getThroughParent()->getTable();
-            $farTable = $alias2 ?: $this->getModel()->getTable();
+            $farTable = $alias ?: $this->getModel()->getTable();
+            $parentTable = preg_replace('/\./', '_', $this->getTableOrAliasForModel($this->getFarParent(), $this->getFarParent()->getTable()));
+            $throughTable = $alias ? $parentTable . '_to_' . $alias : $this->getThroughParent()->getTable();
 
-            $builder->{$joinType}($this->getThroughParent()->getTable(), function (PowerJoinClause $join) use ($callback, $throughTable, $alias1, $disableExtraConditions) {
-                if ($alias1) {
-                    $join->as($alias1);
+            $builder->{$joinType}($this->getThroughParent()->getTable(), function (PowerJoinClause $join) use ($callback, $throughTable, $parentTable, $alias, $disableExtraConditions) {
+                if ($alias) {
+                    $join->as($parentTable . '_to_' . $alias);
                 }
 
                 $join->on(
@@ -234,9 +232,9 @@ class RelationshipsExtraMethods
                 }
             }, $this->getThroughParent());
 
-            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $throughTable, $farTable, $alias1, $alias2) {
-                if ($alias2) {
-                    $join->as($alias2);
+            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $throughTable, $farTable, $alias) {
+                if ($alias) {
+                    $join->as($alias);
                 }
 
                 $join->on(

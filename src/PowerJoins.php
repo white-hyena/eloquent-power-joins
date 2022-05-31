@@ -366,16 +366,31 @@ trait PowerJoins
         $this->joinRelationshipCache[spl_object_id($this)][$relation] = true;
     }
 
-    public function generateAliasForRelationship($relation, $relationName)
+    public function generateAliasForRelationship(&$useAlias, $relation, $relationName, $callback)
     {
         if ($relation instanceof BelongsToMany || $relation instanceof HasManyThrough) {
-            return [
-                md5($relationName . 'table1' . time()),
-                md5($relationName . 'table2' . time()),
-            ];
+            if (is_array($callback) && (isset($callback[$relationName]['pivot']) || isset($callback[$relationName]['related']))) {
+                return collect(['pivot', 'related'])
+                    ->map(function ($value) use ($useAlias, $relationName, $callback) {
+                        if (isset($callback[$relationName][$value])) {
+                            $fakeJoinCallback = new FakeJoinCallback();
+                            $callback[$relationName][$value]($fakeJoinCallback);
+
+                            if ($fakeJoinCallback->getAlias()) {
+                                $useAlias = true;
+                                return $fakeJoinCallback->getAlias();
+                            }
+                        }
+
+                        return md5($relationName . $value . time());
+                    })
+                    ->toArray();
+            }
         }
 
-        return md5($relationName . time());
+        return $useAlias
+            ? md5($relationName . time())
+            : null;
     }
 
     /**
@@ -419,7 +434,7 @@ trait PowerJoins
      *
      * @return string|null
      */
-    protected function getAliasName($useAlias, $relation, $relationName, $callback)
+    protected function getAliasName(&$useAlias, $relation, $relationName, $callback)
     {
         if ($callback) {
             if (is_callable($callback)) {
@@ -427,22 +442,24 @@ trait PowerJoins
                 $callback($fakeJoinCallback);
 
                 if ($fakeJoinCallback->getAlias()) {
+                    $useAlias = true;
                     return $fakeJoinCallback->getAlias();
                 }
             }
 
-            if (is_array($callback) && isset($callback[$relationName])) {
-                $fakeJoinCallback = new FakeJoinCallback();
-                $callback[$relationName]($fakeJoinCallback);
+            if (!($relation instanceof BelongsToMany || $relation instanceof HasManyThrough)) {
+                if (is_array($callback) && isset($callback[$relationName])) {
+                    $fakeJoinCallback = new FakeJoinCallback();
+                    $callback[$relationName]($fakeJoinCallback);
 
-                if ($fakeJoinCallback->getAlias()) {
-                    return $fakeJoinCallback->getAlias();
+                    if ($fakeJoinCallback->getAlias()) {
+                        $useAlias = true;
+                        return $fakeJoinCallback->getAlias();
+                    }
                 }
             }
         }
 
-        return $useAlias
-            ? $this->generateAliasForRelationship($relation, $relationName)
-            : null;
+        return $this->generateAliasForRelationship($useAlias, $relation, $relationName, $callback);
     }
 }

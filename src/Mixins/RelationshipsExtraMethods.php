@@ -81,34 +81,35 @@ class RelationshipsExtraMethods
         return function ($builder, $joinType, $callback = null, $alias = null, bool $disableExtraConditions = false) {
             [$alias1, $alias2] = $alias;
 
-            $joinedTable = $alias1 ?: $this->getTable();
+            $pivotTable = $alias1 ?: $this->getTable();
+            $relatedTable = $alias2 ?: $this->getModel()->getTable();
             $parentTable = $this->getTableOrAliasForModel($this->parent) ?? $this->parent->getTable();
 
-            $builder->{$joinType}($this->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $parentTable, $alias1) {
+            $builder->{$joinType}($this->getTable(), function (PowerJoinClause $join) use ($callback, $pivotTable, $parentTable, $alias1) {
                 if ($alias1) {
                     $join->as($alias1);
                 }
 
                 $join->on(
-                    "{$joinedTable}.{$this->getForeignPivotKeyName()}",
+                    "{$pivotTable}.{$this->getForeignPivotKeyName()}",
                     '=',
                     "{$parentTable}.{$this->parentKey}"
                 );
 
-                if (is_array($callback) && isset($callback[$this->getTable()])) {
-                    $callback[$this->getTable()]($join);
+                if (is_array($callback) && isset($callback['pivot'])) {
+                    $callback['pivot']($join);
                 }
             });
 
-            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $joinedTable, $alias2, $disableExtraConditions) {
+            $builder->{$joinType}($this->getModel()->getTable(), function (PowerJoinClause $join) use ($callback, $pivotTable, $alias2, $disableExtraConditions, $relatedTable) {
                 if ($alias2) {
                     $join->as($alias2);
                 }
 
                 $join->on(
-                    "{$this->getModel()->getTable()}.{$this->getModel()->getKeyName()}",
+                    "{$relatedTable}.{$this->getModel()->getKeyName()}",
                     '=',
-                    "{$joinedTable}.{$this->getRelatedPivotKeyName()}"
+                    "{$pivotTable}.{$this->getRelatedPivotKeyName()}"
                 );
 
                 if ($disableExtraConditions === false && $this->usesSoftDeletes($this->query->getModel())) {
@@ -120,8 +121,8 @@ class RelationshipsExtraMethods
                     $this->applyExtraConditions($join);
                 }
 
-                if (is_array($callback) && isset($callback[$this->getModel()->getTable()])) {
-                    $callback[$this->getModel()->getTable()]($join);
+                if (is_array($callback) && isset($callback['related'])) {
+                    $callback['related']($join);
                 }
             }, $this->getModel());
 
@@ -229,8 +230,8 @@ class RelationshipsExtraMethods
                     $callback[$this->getThroughParent()->getTable()]($join);
                 }
 
-                if ($callback && is_callable($callback)) {
-                    $callback($join);
+                if (is_array($callback) && isset($callback['pivot'])) {
+                    $callback['pivot']($join);
                 }
             }, $this->getThroughParent());
 
@@ -249,8 +250,8 @@ class RelationshipsExtraMethods
                     $join->whereNull("{$farTable}.{$this->getModel()->getDeletedAtColumn()}");
                 }
 
-                if (is_array($callback) && isset($callback[$this->getModel()->getTable()])) {
-                    $callback[$this->getModel()->getTable()]($join);
+                if (is_array($callback) && isset($callback['related'])) {
+                    $callback['related']($join);
                 }
             }, $this->getModel());
 
